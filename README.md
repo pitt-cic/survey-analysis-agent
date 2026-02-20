@@ -28,8 +28,7 @@ Key capabilities include:
 - **AI-Powered Analysis**: Get intelligent summaries and insights powered by Claude
 - **Downloadable Results**: Export analysis in markdown format and relevant survey results as a CSV
 
-*
-*_While we specifically built this solution for athletics, it is easily adaptable for other use cases. Simply update the
+**_While we specifically built this solution for athletics, it is easily adaptable for other use cases. Simply update the
 prompt, upload your survey responses, and start querying._**
 
 # Demo
