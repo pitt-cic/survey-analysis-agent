@@ -23,7 +23,7 @@ export function CallToAction() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://github.com"
+              href="https://github.com/pitt-cic/survey-analysis-agent"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-flex items-center gap-2"
