@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 
-const DEMO_VIDEO_URL = 'https://github.com/user-attachments/assets/322551b6-9ef1-4576-a1f0-851d37029a5a';
+const DEMO_VIDEO_URL = 'https://github.com/user-attachments/assets/985bb1f0-909f-472e-8356-c8c06e89096f';
 
 export function Demo() {
   return (
