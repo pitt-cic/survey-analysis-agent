@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* Subtle dot grid pattern */
+.bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Staggered entrance animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+
+.delay-1 { animation-delay: 50ms; }
+.delay-2 { animation-delay: 100ms; }
+.delay-3 { animation-delay: 150ms; }
+.delay-4 { animation-delay: 200ms; }
+
+/* Processing indicator pulse rings */
+@keyframes pulse-expand {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  animation: pulse-expand 2.4s ease-out infinite;
+}
+
+.pulse-ring.delay-1 {
+  animation-delay: 0.8s;
+}
+
+.pulse-ring.delay-2 {
+  animation-delay: 1.6s;
+}
+
+/* Phase glow effect */
+.phase-glow {
+  box-shadow: 0 0 12px 2px rgba(245, 158, 11, 0.4);
+}
+
+/* Typing dots animation */
+@keyframes typing-blink {
+  0%, 20% { opacity: 1; }
+  40%, 100% { opacity: 0.3; }
+}
+
+.typing-dots {
+  display: inline-flex;
+  letter-spacing: 2px;
+}
+
+.typing-dots::after {
+  content: '';
+  animation: typing-blink 1.4s infinite;
+}
