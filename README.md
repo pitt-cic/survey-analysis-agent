@@ -34,7 +34,7 @@ prompt, upload your survey responses, and start querying._**
 
 # Demo
 
-https://github.com/user-attachments/assets/322551b6-9ef1-4576-a1f0-851d37029a5a
+https://github.com/user-attachments/assets/985bb1f0-909f-472e-8356-c8c06e89096f
 
 # Description
 
