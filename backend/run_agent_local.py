@@ -12,7 +12,7 @@ def main():
     while True:
         try:
             query = input("Enter your query (or 'quit' to exit): ").strip()
-            if query.lower() in ('quit', 'exit', 'q'):
+            if query.lower() in ("quit", "exit", "q"):
                 print("Goodbye!")
                 break
             if not query:

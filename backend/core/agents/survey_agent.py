@@ -59,7 +59,7 @@ def init_agent():
     return agent, embedding_store
 
 
-def run_query(agent, embedding_store, query):
+def run_query(agent: Agent[None, str], query: str, deps: AnalystAgentDeps):
     """
     Run a query against the survey agent.
 
@@ -71,12 +71,11 @@ def run_query(agent, embedding_store, query):
     Returns:
         AnalysisOutput: The agent's structured response
     """
-    deps = AnalystAgentDeps(embedding_store=embedding_store)
     result = agent.run_sync(user_prompt=query, deps=deps)
     return result.output
 
 
-def run_query_with_citations(agent, embedding_store, query):
+def run_query_with_citations(agent: Agent[None, str], embedding_store, query):
     """
     Run a query against the survey agent and return results with citations.
 
@@ -89,10 +88,9 @@ def run_query_with_citations(agent, embedding_store, query):
         dict: Contains 'response', 'cited_responses', 'cited_count', and 'search_results'
     """
     deps = AnalystAgentDeps(embedding_store=embedding_store)
-    result = agent.run_sync(user_prompt=query, deps=deps)
-    output: AnalysisOutput = result.output
+    output: AnalysisOutput = run_query(agent=agent, query=query, deps=deps)
 
-    # Combine all search results into single DataFrame (already has id)
+    # Combine all search results into single DataFrame
     if deps.search_results:
         combined_df = pd.concat(deps.search_results, ignore_index=True)
     else:

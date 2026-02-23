@@ -17,7 +17,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
         cdk.Tags.of(this).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(this).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(this).add('managedBy', 'cdk');
 
         // ========================================
@@ -107,7 +106,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
         });
 
         cdk.Tags.of(jobsTable).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(jobsTable).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(jobsTable).add('managedBy', 'cdk');
 
         // ========================================
@@ -170,9 +168,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
         // DynamoDB permissions for job updates
         jobsTable.grantReadWriteData(agentLambdaRole);
 
-        // S3 permissions for output files (added later after dataBucket is created)
-        // Note: This is handled via a deferred grant after dataBucket definition
-
         // Create Lambda function
         const agentLambda = new lambda.Function(this, 'AgentLambda', {
             functionName: 'survey-analysis-agent',
@@ -183,7 +178,7 @@ export class SurveyAnalysisStack extends cdk.Stack {
                 {
                     bundling: {
                         image: lambda.Runtime.PYTHON_3_13.bundlingImage,
-                        platform: 'linux/amd64', // Force x86_64 builds regardless of the host machine
+                        platform: 'linux/amd64',
                         command: [
                             'bash', '-c',
                             [
@@ -192,7 +187,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
                                 'pip install -r requirements.txt -t /asset-output --no-cache-dir',
                                 'cp handler.py /asset-output/',
                                 'cp __init__.py /asset-output/',
-                                // Copy only the core backend modules (exclude lambdas and other unused dirs)
                                 'mkdir -p /asset-output/backend/core',
                                 'cp -r /asset-input/core /asset-output/backend/',
                                 'touch /asset-output/backend/__init__.py'
@@ -207,7 +201,7 @@ export class SurveyAnalysisStack extends cdk.Stack {
             reservedConcurrentExecutions: 10,
             environment: {
                 S3_VECTOR_BUCKET_NAME: vectorBucket.vectorBucketName!,
-                S3_VECTOR_INDEX_NAME: 'survey-responses',
+                S3_VECTOR_INDEX_NAME: vectorIndex.indexName!,
                 BEDROCK_MODEL_NAME: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
                 JOBS_TABLE_NAME: jobsTable.tableName,
                 LOG_LEVEL: 'INFO',
@@ -218,16 +212,7 @@ export class SurveyAnalysisStack extends cdk.Stack {
 
         // Add consistent tags
         cdk.Tags.of(agentLambda).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(agentLambda).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(agentLambda).add('managedBy', 'cdk');
-
-        // Grant Agent Lambda permission to invoke itself for retries
-        // Use constructed ARN to avoid circular dependency (role policy -> lambda -> role)
-        agentLambdaRole.addToPolicy(new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['lambda:InvokeFunction'],
-            resources: [`arn:aws:lambda:${this.region}:${this.account}:function:survey-analysis-agent`],
-        }));
 
         // ========================================
         // Lambda Function for Job Initiator
@@ -280,17 +265,10 @@ export class SurveyAnalysisStack extends cdk.Stack {
         });
 
         cdk.Tags.of(jobInitiatorLambda).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(jobInitiatorLambda).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(jobInitiatorLambda).add('managedBy', 'cdk');
 
         // Grant Job Initiator permission to invoke Agent Lambda
-        // Use constructed ARN to avoid circular dependency
-        jobInitiatorRole.addToPolicy(new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['lambda:InvokeFunction'],
-            resources: [`arn:aws:lambda:${this.region}:${this.account}:function:survey-analysis-agent`],
-        }));
-
+        agentLambda.grantInvoke(jobInitiatorRole);
         // ========================================
         // Lambda Function for Status Checker
         // ========================================
@@ -341,7 +319,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
         });
 
         cdk.Tags.of(statusCheckerLambda).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(statusCheckerLambda).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(statusCheckerLambda).add('managedBy', 'cdk');
 
         // ========================================
@@ -519,11 +496,9 @@ export class SurveyAnalysisStack extends cdk.Stack {
 
         // Add consistent tags
         cdk.Tags.of(csvChunkQueue).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(csvChunkQueue).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(csvChunkQueue).add('managedBy', 'cdk');
 
         cdk.Tags.of(csvChunkDLQ).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(csvChunkDLQ).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(csvChunkDLQ).add('managedBy', 'cdk');
 
         // ========================================
@@ -609,7 +584,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
 
         // Add consistent tags
         cdk.Tags.of(embeddingConsumerLambda).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(embeddingConsumerLambda).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(embeddingConsumerLambda).add('managedBy', 'cdk');
 
         // ========================================
