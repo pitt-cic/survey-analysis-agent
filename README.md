@@ -135,7 +135,32 @@ Before deploying Survey Analysis Agent, ensure you have the following prerequisi
    ```
    Replace `ACCOUNT_ID` and `REGION` with your AWS account ID and region.
 
-## Backend Deployment
+## Quick Start (Recommended)
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/pitt-cic/survey-analysis-agent.git
+   cd survey-analysis-agent
+   ```
+
+2. **Run the deploy script (`deploy.sh`)**:
+   ```bash
+   chmod +x ./deploy.sh
+   ./deploy.sh
+   ```
+
+3. **Select option 1** to deploy infrastructure and frontend.
+
+The script provides a menu-driven interface for:
+- Deploying infrastructure and frontend
+- Viewing deployment details (URLs, User Pool ID, etc.)
+- Uploading survey data with CSV validation
+- Inviting users via Cognito
+
+<details>
+<summary><strong>Manual Deployment Steps</strong></summary>
+
+### Backend Deployment
 
 1. **Clone the repository and navigate to the project directory**:
    ```bash
@@ -143,20 +168,23 @@ Before deploying Survey Analysis Agent, ensure you have the following prerequisi
    cd survey-analysis-agent
    ```
 
-2. **Deploy the infrastructure using CDK**:
+2. **Install dependencies and deploy the infrastructure using CDK**:
    ```bash
-   cd infrastructure && npx cdk deploy
+   cd infrastructure
+   npm install
+   npx cdk deploy
    ```
 
    The deployment will create all necessary AWS resources and output the configuration values needed for the frontend.
 
-## Frontend Deployment
+### Frontend Deployment
 
 **Ensure the backend is fully deployed before proceeding.**
 
-Run the deployment script from the repository root:
+Run the deployment script from the frontend directory:
 
 ```bash
+cd frontend
 chmod +x ./deploy-frontend.sh
 ./deploy-frontend.sh
 ```
@@ -168,15 +196,19 @@ The script will:
 - Build the React application
 - Deploy to AWS Amplify
 
+</details>
+
 ## Local Development
 
 For local frontend development:
 
 ```bash
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
-The development server will run at `http://localhost:5173`.
+The terminal will display the local URL where the development server is running.
 
 ---
 
@@ -184,24 +216,62 @@ The development server will run at `http://localhost:5173`.
 
 1. **Access the Application**:
 
-   Once deployed, access the web interface using the Amplify URL from the CDK outputs:
-   ```
-   https://main.<amplify-app-id>.amplifyapp.com
-   ```
+   Once deployed, access the web interface using the Amplify URL. Run the deploy script (`./deploy.sh`) and select option 2 (Describe Deployment) to view your application URL and other deployment details.
 
 2. **User Registration**:
 
-   User accounts are managed by administrators in Amazon Cognito. Create new users through the AWS Management
-   Console. [Learn more about creating Cognito users](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html).
+   User accounts are managed by administrators in Amazon Cognito. Users only need to be added by email—they will
+   provide their name and set their password on first login.
+
+   **Via deploy.sh (Recommended):**
+   Run `./deploy.sh` and select option 4 (Invite User). The script will prompt for the user's email and handle the rest.
+
+   <details>
+   <summary>Manual Methods</summary>
+
+   **Via AWS CLI:**
+   ```bash
+   aws cognito-idp admin-create-user \
+     --user-pool-id <USER_POOL_ID> \
+     --username "user@example.com" \
+     --user-attributes Name=email,Value=user@example.com \
+     --desired-delivery-mediums EMAIL
+   ```
+   Replace `<USER_POOL_ID>` with the value from your CDK deployment outputs.
+
+   **Via AWS Console:**
+   Navigate to Amazon Cognito > User pools > `survey-analysis-users` > Users > Create user.
+   [Learn more about creating Cognito users](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html).
+
+   </details>
 
 3. **Login**:
 
-   Log in using your email and password credentials.
+   Log in using your email and the temporary password sent to your inbox. On first login, you'll be prompted to set a
+   new password and provide your name.
 
 4. **Upload Survey Data**:
 
-   Upload your survey responses as a CSV file to the S3 bucket (`survey-analysis-agent-csv-uploads`) via the AWS Console
-   or CLI. The system will automatically process the data and generate embeddings for semantic search.
+   Upload your survey responses as a CSV file to the S3 data bucket. The system will
+   automatically process the data and generate embeddings for semantic search.
+
+   **Via deploy.sh (Recommended):**
+   Run `./deploy.sh` and select option 3 (Upload Survey Data). The script will validate your CSV columns before uploading.
+
+   <details>
+   <summary>Manual Methods</summary>
+
+   **Via AWS CLI:**
+   ```bash
+   aws s3 cp your-survey-data.csv s3://survey-agent-data/input/
+   ```
+
+   **Via AWS Console:**
+   Navigate to Amazon S3 > `survey-agent-data` > `input/` folder > Upload.
+
+   </details>
+
+   &nbsp;
 
    **CSV Format Requirements:**
 
@@ -300,7 +370,7 @@ Analytics Cloud Innovation Center.
 
 **Special Thanks:**
 
-- [Richard Turnquist](https://www.linkedin.com/in/richardturnquist/) - Assistant Athletic Director, Data and Analytics,
+- [Richard Turnquist](https://www.linkedin.com/in/richardturnquist/) - Associate Athletic Director, Data and Analytics Strategy,
   Pitt Athletics
 
 This project is designed and developed with guidance and support from
