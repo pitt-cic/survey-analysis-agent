@@ -3,7 +3,8 @@ import { useQueryWithPolling } from './api/query'
 import { useAuth } from './auth/useAuth'
 import { LoginForm } from './auth/LoginForm'
 import { ProcessingIndicator } from './components/ProcessingIndicator'
-import { AnalysisResult, analysisToMarkdown } from './components/AnalysisResult'
+import { AnalysisResult } from './components/AnalysisResult'
+import { analysisToMarkdown } from './utils/analysisToMarkdown'
 
 function downloadFile(url: string, filename: string): void {
   const link = document.createElement('a')
