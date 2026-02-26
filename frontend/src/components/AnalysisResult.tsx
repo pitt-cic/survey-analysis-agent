@@ -5,10 +5,10 @@ interface AnalysisResultProps {
   response: AnalysisResponse
 }
 
-export function AnalysisResult({ response }: AnalysisResultProps) {
+export function AnalysisResult({ response }: AnalysisResultProps): React.ReactElement {
   const [expandedThemes, setExpandedThemes] = useState<Set<number>>(new Set())
 
-  const toggleTheme = (index: number) => {
+  function toggleTheme(index: number): void {
     setExpandedThemes(prev => {
       const next = new Set(prev)
       if (next.has(index)) {
@@ -66,12 +66,7 @@ export function AnalysisResult({ response }: AnalysisResultProps) {
                       className="group flex items-center gap-1.5 text-xs font-medium text-amber-500/90 hover:text-amber-400 transition-colors"
                     >
                       <span
-                        className={`
-                          w-4 h-4 rounded flex items-center justify-center
-                          bg-amber-500/10 group-hover:bg-amber-500/20
-                          transition-all duration-200
-                          ${isExpanded ? 'rotate-0' : 'rotate-0'}
-                        `}
+                        className="w-4 h-4 rounded flex items-center justify-center bg-amber-500/10 group-hover:bg-amber-500/20 transition-all duration-200"
                       >
                         {isExpanded ? (
                           <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

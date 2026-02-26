@@ -1,4 +1,3 @@
-// frontend/src/api/query.ts
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from './client'
 
@@ -59,16 +58,14 @@ export interface JobStatusResponse {
   error?: string
 }
 
-// Submit a new job
-async function submitJob(query: string): Promise<JobSubmissionResponse> {
+function submitJob(query: string): Promise<JobSubmissionResponse> {
   return apiRequest<JobSubmissionResponse>('/jobs', {
     method: 'POST',
     body: JSON.stringify({ query }),
   })
 }
 
-// Get job status
-async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
+function getJobStatus(jobId: string): Promise<JobStatusResponse> {
   return apiRequest<JobStatusResponse>(`/jobs/${jobId}`)
 }
 

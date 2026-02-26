@@ -160,7 +160,7 @@ export class SurveyAnalysisStack extends cdk.Stack {
             effect: iam.Effect.ALLOW,
             actions: ['bedrock:InvokeModel'],
             resources: [
-                `arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v2:0`,
+                `arn:aws:bedrock:*::foundation-model/*`,
                 `arn:aws:bedrock:*:${this.account}:*`,
             ],
         }));

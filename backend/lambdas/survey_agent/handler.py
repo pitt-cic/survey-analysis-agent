@@ -27,7 +27,7 @@ RETRY_BASE_DELAY_SECONDS = 2
 
 
 @logger.inject_lambda_context(log_event=True)
-def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
+def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     """Handle async job invocations from Job Initiator."""
     try:
         # Parse and validate async Lambda event

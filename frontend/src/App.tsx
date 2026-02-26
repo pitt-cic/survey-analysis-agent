@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { useQueryWithPolling } from './api/query'
-import type { JobResult } from './api/query'
 import { useAuth } from './auth/useAuth'
 import { LoginForm } from './auth/LoginForm'
 import { ProcessingIndicator } from './components/ProcessingIndicator'
 import { AnalysisResult, analysisToMarkdown } from './components/AnalysisResult'
+
+function downloadFile(url: string, filename: string): void {
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+}
 
 function App() {
   const { user, isLoading, isAuthenticated, logout } = useAuth()
@@ -28,45 +34,34 @@ function App() {
   const isProcessing = isSubmitting || isPolling
   const hasError = isFailed || !!submitError
 
-  const handleDownloadMarkdown = () => {
+  function handleDownloadMarkdown(): void {
     if (!result?.response) return
 
     const markdown = analysisToMarkdown(result.response)
     const blob = new Blob([markdown], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'analysis-results.md'
-    a.click()
+    downloadFile(url, 'analysis-results.md')
     URL.revokeObjectURL(url)
   }
 
-  const handleDownloadCitedResponses = () => {
+  function handleDownloadCitedResponses(): void {
     if (!result?.cited_responses?.s3_url) return
-
-    const link = document.createElement('a')
-    link.href = result.cited_responses.s3_url
-    link.download = 'cited-responses.csv'
-    link.click()
+    downloadFile(result.cited_responses.s3_url, 'cited-responses.csv')
   }
 
-  const handleDownloadSearchResults = () => {
+  function handleDownloadSearchResults(): void {
     if (!result?.search_results?.s3_url) return
-
-    const link = document.createElement('a')
-    link.href = result.search_results.s3_url
-    link.download = 'search-results.csv'
-    link.click()
+    downloadFile(result.search_results.s3_url, 'search-results.csv')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent): void {
     e.preventDefault()
     if (!input.trim()) return
     setSubmittedQuery(input.trim())
     submit(input.trim())
   }
 
-  const handleCopyResponse = async () => {
+  async function handleCopyResponse(): Promise<void> {
     if (!result?.response) return
     const markdown = analysisToMarkdown(result.response)
     await navigator.clipboard.writeText(markdown)
@@ -74,7 +69,7 @@ function App() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleNewQuery = () => {
+  function handleNewQuery(): void {
     setInput('')
     setSubmittedQuery('')
     reset()
@@ -208,113 +203,109 @@ function App() {
           )}
 
           {/* Success state */}
-          {isComplete && result && (() => {
-            const data = result as JobResult
+          {isComplete && result && (
+            <div className="mt-6 space-y-4 animate-fade-up">
+              {/* User's query */}
+              {submittedQuery && (
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl px-5 py-4">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Your query</p>
+                  <p className="text-sm text-slate-200 leading-relaxed">{submittedQuery}</p>
+                </div>
+              )}
 
-            return (
-              <div className="mt-6 space-y-4 animate-fade-up">
-                {/* User's query */}
-                {submittedQuery && (
-                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl px-5 py-4">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Your query</p>
-                    <p className="text-sm text-slate-200 leading-relaxed">{submittedQuery}</p>
+              {/* Response card */}
+              <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800/60 bg-slate-900/30">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-medium text-slate-300">Analysis Complete</span>
+                    {result.metadata && (
+                      <span className="text-xs text-slate-500">
+                        • {(result.metadata.execution_time_ms / 1000).toFixed(1)}s
+                      </span>
+                    )}
                   </div>
-                )}
-
-                {/* Response card */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800/60 bg-slate-900/30">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-xs font-medium text-slate-300">Analysis Complete</span>
-                      {data.metadata && (
-                        <span className="text-xs text-slate-500">
-                          • {(data.metadata.execution_time_ms / 1000).toFixed(1)}s
-                        </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyResponse}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy
+                        </>
                       )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleCopyResponse}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors"
-                      >
-                        {copied ? (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            Copy
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={handleDownloadMarkdown}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download
-                      </button>
-                      <button
-                        onClick={handleDownloadCitedResponses}
-                        disabled={!data.cited_responses?.s3_url}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={
-                          data.cited_responses?.row_count > 0
-                            ? `Download ${data.cited_responses.row_count} cited responses as CSV`
-                            : 'No cited responses to download'
-                        }
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Cited ({data.cited_responses?.row_count || 0})
-                      </button>
-                      <button
-                        onClick={handleDownloadSearchResults}
-                        disabled={!data.search_results?.s3_url}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-purple-500 hover:text-purple-400 hover:bg-purple-500/10 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={
-                          data.search_results?.row_count > 0
-                            ? `Download ${data.search_results.row_count} search results as CSV`
-                            : 'No search results to download'
-                        }
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        Search ({data.search_results?.row_count || 0})
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <AnalysisResult response={data.response} />
+                    </button>
+                    <button
+                      onClick={handleDownloadMarkdown}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    </button>
+                    <button
+                      onClick={handleDownloadCitedResponses}
+                      disabled={!result.cited_responses?.s3_url}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={
+                        result.cited_responses?.row_count > 0
+                          ? `Download ${result.cited_responses.row_count} cited responses as CSV`
+                          : 'No cited responses to download'
+                      }
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Cited ({result.cited_responses?.row_count || 0})
+                    </button>
+                    <button
+                      onClick={handleDownloadSearchResults}
+                      disabled={!result.search_results?.s3_url}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-purple-500 hover:text-purple-400 hover:bg-purple-500/10 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={
+                        result.search_results?.row_count > 0
+                          ? `Download ${result.search_results.row_count} search results as CSV`
+                          : 'No search results to download'
+                      }
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      Search ({result.search_results?.row_count || 0})
+                    </button>
                   </div>
                 </div>
-
-                {/* New Query button */}
-                <div className="flex justify-center pt-2">
-                  <button
-                    onClick={handleNewQuery}
-                    className="px-4 py-2 text-sm font-medium text-slate-300 border border-slate-700 rounded-lg hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Query
-                  </button>
+                <div className="p-6">
+                  <AnalysisResult response={result.response} />
                 </div>
               </div>
-            )
-          })()}
+
+              {/* New Query button */}
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={handleNewQuery}
+                  className="px-4 py-2 text-sm font-medium text-slate-300 border border-slate-700 rounded-lg hover:bg-slate-800 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  New Query
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Empty state */}
           {!isComplete && !hasError && !isProcessing && (
