@@ -4,7 +4,7 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -25,7 +25,7 @@ CHUNK_QUEUE_URL = os.environ.get("CHUNK_QUEUE_URL")
 
 
 @logger.inject_lambda_context(log_event=True)
-def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     """
     Handle S3 ObjectCreated events for CSV uploads.
 
@@ -188,7 +188,7 @@ def process_csv_file(bucket: str, key: str) -> int:
     return chunks_sent
 
 
-def send_messages_to_sqs(messages: List[Dict[str, Any]]) -> int:
+def send_messages_to_sqs(messages: list[dict[str, Any]]) -> int:
     """
     Send messages to SQS in batches of 10 (API limit).
 
@@ -236,7 +236,7 @@ def send_messages_to_sqs(messages: List[Dict[str, Any]]) -> int:
     return total_sent
 
 
-def send_batch(batch: List[Dict[str, str]]) -> None:
+def send_batch(batch: list[dict[str, str]]) -> None:
     """
     Send a single batch of messages to SQS.
 

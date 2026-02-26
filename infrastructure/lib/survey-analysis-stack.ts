@@ -160,7 +160,7 @@ export class SurveyAnalysisStack extends cdk.Stack {
             effect: iam.Effect.ALLOW,
             actions: ['bedrock:InvokeModel'],
             resources: [
-                `arn:aws:bedrock:*::foundation-model/*`,
+                `arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v2:0`,
                 `arn:aws:bedrock:*:${this.account}:*`,
             ],
         }));
@@ -449,7 +449,6 @@ export class SurveyAnalysisStack extends cdk.Stack {
 
         // Add consistent tags
         cdk.Tags.of(csvProcessorLambda).add('project', 'SurveyAnalysisAgent');
-        cdk.Tags.of(csvProcessorLambda).add('author', 'VPS27 / GLF28');
         cdk.Tags.of(csvProcessorLambda).add('managedBy', 'cdk');
 
         // Configure S3 event notification - only trigger for input/ prefix

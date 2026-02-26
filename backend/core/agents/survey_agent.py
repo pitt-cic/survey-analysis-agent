@@ -101,8 +101,8 @@ def run_query_with_citations(agent: Agent[None, str], embedding_store, query):
 
     # Build id -> excerpt mapping for markdown formatting
     id_to_excerpt = {}
-    for c in cited_responses:
-        if combined_df is not None and not combined_df.empty:
+    if not combined_df.empty:
+        for c in cited_responses:
             match = combined_df[combined_df["response_id"] == c["response_id"]]
             if not match.empty:
                 id_to_excerpt[match.iloc[0]["id"]] = c["excerpt"]
@@ -128,9 +128,9 @@ def _build_enriched_response(output: AnalysisOutput, id_to_excerpt: dict) -> dic
                 "name": theme.name,
                 "summary": theme.summary,
                 "supporting_citations": [
-                    {"excerpt": id_to_excerpt.get(c, "")}
+                    {"excerpt": excerpt}
                     for c in theme.supporting_citations
-                    if id_to_excerpt.get(c)
+                    if (excerpt := id_to_excerpt.get(c))
                 ],
             }
             for theme in output.themes

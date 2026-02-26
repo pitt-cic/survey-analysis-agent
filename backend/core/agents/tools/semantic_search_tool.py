@@ -1,7 +1,5 @@
 """Semantic search tool for multi-query survey response retrieval."""
 
-import json
-
 import pandas as pd
 from botocore.client import BaseClient
 from pydantic_ai import RunContext, Agent
@@ -92,21 +90,11 @@ def register_semantic_search_tool(
         Returns:
             Formatted string of deduplicated matching survey responses.
         """
-        try:
-            search_queries: RewrittenQueries = _generate_search_queries(
-                ctx, original_search_query, client, model_name
-            )
-            if not search_queries.queries:
-                error_msg = (
-                    "Error: queries_json must be a non-empty JSON array of strings."
-                )
-                logger.warning("multi_query_search response: %s", error_msg)
-                return error_msg
-        except (json.JSONDecodeError, TypeError):
-            error_msg = (
-                "Error: Invalid JSON in queries_json. "
-                "Expected a JSON array of query strings."
-            )
+        search_queries: RewrittenQueries = _generate_search_queries(
+            ctx, original_search_query, client, model_name
+        )
+        if not search_queries.queries:
+            error_msg = "Error: No search queries generated."
             logger.warning("multi_query_search response: %s", error_msg)
             return error_msg
 

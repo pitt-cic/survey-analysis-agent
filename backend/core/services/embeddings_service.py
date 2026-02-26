@@ -82,32 +82,39 @@ class EmbeddingStore:
                     wait_time = 2**attempt
                     if self.detailed_logs:
                         logger.debug(
-                            f"Rate limit hit for {text_id}, retry {attempt + 1}/{self.rate_limit_retries}, waiting {wait_time}s..."
+                            "Rate limit hit for %s, retry %d/%d, waiting %ds...",
+                            text_id,
+                            attempt + 1,
+                            self.rate_limit_retries,
+                            wait_time,
                         )
                     time.sleep(wait_time)
                     continue
 
-                elif error_code == "ValidationException":
+                if error_code == "ValidationException":
                     if self.detailed_logs:
                         logger.warning(
-                            f"Validation error for {text_id}: {str(e)[:100]}"
+                            "Validation error for %s: %s", text_id, str(e)[:100]
                         )
                     return None, False
 
-                else:
-                    wait_time = 2**attempt
-                    if self.detailed_logs:
-                        logger.debug(
-                            f"Error for {text_id}: {error_code}, retry {attempt + 1}/{self.rate_limit_retries}"
-                        )
-                    if attempt < self.rate_limit_retries - 1:
-                        time.sleep(wait_time)
-                        continue
-                    return None, False
+                wait_time = 2**attempt
+                if self.detailed_logs:
+                    logger.debug(
+                        "Error for %s: %s, retry %d/%d",
+                        text_id,
+                        error_code,
+                        attempt + 1,
+                        self.rate_limit_retries,
+                    )
+                if attempt < self.rate_limit_retries - 1:
+                    time.sleep(wait_time)
+                    continue
+                return None, False
 
             except Exception as e:
                 if self.detailed_logs:
-                    logger.warning(f"Unexpected error for {text_id}: {str(e)[:100]}")
+                    logger.warning("Unexpected error for %s: %s", text_id, str(e)[:100])
                 return None, False
 
         return None, False
@@ -134,8 +141,7 @@ class EmbeddingStore:
                     existing_ids.add(v["key"])
             except Exception as e:
                 if self.detailed_logs:
-                    logger.debug(f"Error checking existing vectors: {str(e)[:100]}")
-                pass
+                    logger.debug("Error checking existing vectors: %s", str(e)[:100])
 
         return existing_ids
 
@@ -150,10 +156,10 @@ class EmbeddingStore:
                 indexName=self.index_name,
                 vectors=vectors,
             )
-            logger.info(f"Uploaded {len(vectors)} vectors to S3")
+            logger.info("Uploaded %d vectors to S3", len(vectors))
             return len(vectors)
         except Exception as e:
-            logger.error(f"Error uploading vectors: {str(e)}")
+            logger.error("Error uploading vectors: %s", str(e))
             raise
 
     def delete_all_vectors(self, csv_name: str, max_count: int = 1000) -> int:
@@ -180,14 +186,16 @@ class EmbeddingStore:
                 )
                 total_deleted += len(batch_keys)
                 logger.info(
-                    f"Deleted batch of {len(batch_keys)} vectors (total: {total_deleted})"
+                    "Deleted batch of %d vectors (total: %d)",
+                    len(batch_keys),
+                    total_deleted,
                 )
             except Exception as e:
                 if "NotFound" not in str(e):
-                    logger.warning(f"Error deleting vectors: {str(e)[:100]}")
+                    logger.warning("Error deleting vectors: %s", str(e)[:100])
                 break
 
-        logger.info(f"Deleted {total_deleted} vectors for {csv_name}")
+        logger.info("Deleted %d vectors for %s", total_deleted, csv_name)
         return total_deleted
 
     def add_dataframe(
@@ -214,7 +222,9 @@ class EmbeddingStore:
         # Limit to first max_rows
         if len(text_rows) > max_rows:
             logger.info(
-                f"Limiting embeddings to first {max_rows} of {len(text_rows)} text responses"
+                "Limiting embeddings to first %d of %d text responses",
+                max_rows,
+                len(text_rows),
             )
             text_rows = text_rows.head(max_rows)
 
@@ -232,10 +242,10 @@ class EmbeddingStore:
         new_rows = text_rows[~text_rows["_embedding_id"].isin(existing_ids)]
 
         if len(new_rows) == 0:
-            logger.info(f"All {len(text_rows)} rows already have embeddings")
+            logger.info("All %d rows already have embeddings", len(text_rows))
             return
 
-        logger.info(f"Generating embeddings for {len(new_rows)} new rows...")
+        logger.info("Generating embeddings for %d new rows...", len(new_rows))
 
         # Statistics tracking
         total_processed = 0
@@ -285,13 +295,19 @@ class EmbeddingStore:
         success_rate = (total_processed / len(new_rows)) * 100
 
         logger.info(
-            f"Embedding generation complete for {csv_name}: "
-            f"{total_processed}/{len(new_rows)} ({success_rate:.1f}% success), "
-            f"{total_failed} failed, {elapsed_time:.1f}s ({elapsed_time / 60:.1f} minutes)"
+            "Embedding generation complete for %s: %d/%d (%.1f%% success), "
+            "%d failed, %.1fs (%.1f minutes)",
+            csv_name,
+            total_processed,
+            len(new_rows),
+            success_rate,
+            total_failed,
+            elapsed_time,
+            elapsed_time / 60,
         )
         if elapsed_time > 0:
             logger.info(
-                f"Average speed: {total_processed / elapsed_time:.1f} rows/second"
+                "Average speed: %.1f rows/second", total_processed / elapsed_time
             )
 
     def search(
@@ -352,7 +368,7 @@ class EmbeddingStore:
         try:
             response = self.s3vectors_client.query_vectors(**query_params)
         except Exception as e:
-            logger.error(f"Error querying S3 Vectors: {e}")
+            logger.error("Error querying S3 Vectors: %s", e)
             return pd.DataFrame()
 
         # Convert results to DataFrame
