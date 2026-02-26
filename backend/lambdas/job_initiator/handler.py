@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """
 Lambda handler for job initiation.
 Creates job in DynamoDB and invokes agent Lambda asynchronously.

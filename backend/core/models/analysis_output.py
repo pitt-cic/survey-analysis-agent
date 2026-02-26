@@ -11,7 +11,8 @@ class Theme(BaseModel):
         description="A concise summary of what respondents said about this theme."
     )
     supporting_citations: list[str] = Field(
-        description="List of unique IDs referencing a specific row from `multi_query_search` result that support this theme."
+        description="List of unique IDs referencing a specific row from "
+        "`multi_query_search` result that support this theme."
     )
 
 

@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """
 Lambda handler for job status checking.
 Returns job status and result from DynamoDB.

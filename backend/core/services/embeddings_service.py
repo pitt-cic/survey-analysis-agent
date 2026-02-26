@@ -1,10 +1,14 @@
+"""Service for managing survey response embeddings with S3 Vectors and AWS Titan."""
+
+import json
 import os
 import time
 from typing import Any
 
 import pandas as pd
+from botocore.exceptions import ClientError
 
-from backend.core.utils.agent_utils import AgentUtils
+from backend.core.utils.agent_utils import generate_random_id
 from backend.core.utils.aws_client_service import get_client
 from backend.core.utils.logger import get_logger
 
@@ -13,10 +17,10 @@ logger = get_logger(__name__)
 
 def generate_uid() -> str:
     """Generate a random 7-character unique ID."""
-    return AgentUtils.generate_random_id(7)
+    return generate_random_id(7)
 
 
-class EmbeddingStore:
+class EmbeddingStore:  # pylint: disable=too-many-instance-attributes
     """Manages embeddings storage and retrieval using S3 Vectors and AWS Titan."""
 
     def __init__(self, bedrock_client: Any):
@@ -39,8 +43,6 @@ class EmbeddingStore:
 
     def generate_embedding(self, text: str) -> list[float]:
         """Generate embedding for a single text using AWS Titan."""
-        import json
-
         if not text or pd.isna(text):
             return [0.0] * self.embed_dimension
 
@@ -58,9 +60,6 @@ class EmbeddingStore:
         self, text: str, text_id: str = ""
     ) -> tuple[list[float] | None, bool]:
         """Generate embedding with retry logic for rate limiting."""
-        import json
-        from botocore.exceptions import ClientError
-
         if not text or pd.isna(text):
             return [0.0] * self.embed_dimension, True
 
@@ -112,7 +111,7 @@ class EmbeddingStore:
                     continue
                 return None, False
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 if self.detailed_logs:
                     logger.warning("Unexpected error for %s: %s", text_id, str(e)[:100])
                 return None, False
@@ -139,7 +138,7 @@ class EmbeddingStore:
                 )
                 for v in response.get("vectors", []):
                     existing_ids.add(v["key"])
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 if self.detailed_logs:
                     logger.debug("Error checking existing vectors: %s", str(e)[:100])
 
@@ -190,7 +189,7 @@ class EmbeddingStore:
                     len(batch_keys),
                     total_deleted,
                 )
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 if "NotFound" not in str(e):
                     logger.warning("Error deleting vectors: %s", str(e)[:100])
                 break
@@ -198,7 +197,7 @@ class EmbeddingStore:
         logger.info("Deleted %d vectors for %s", total_deleted, csv_name)
         return total_deleted
 
-    def add_dataframe(
+    def add_dataframe(  # pylint: disable=too-many-locals
         self, df: pd.DataFrame, csv_name: str, max_rows: int = 1000, row_offset: int = 0
     ) -> None:
         """Add embeddings for TEXT_ANSWER column from a DataFrame.
@@ -256,7 +255,7 @@ class EmbeddingStore:
         pending_vectors = []
 
         # Process rows sequentially (parallelism is handled by Lambda instances)
-        for row_idx, row in new_rows.iterrows():
+        for _, row in new_rows.iterrows():
             text = row["TEXT_ANSWER"]
             text_id = row["_embedding_id"]
 
@@ -310,7 +309,7 @@ class EmbeddingStore:
                 "Average speed: %.1f rows/second", total_processed / elapsed_time
             )
 
-    def search(
+    def search(  # pylint: disable=too-many-locals
         self,
         query: str,
         top_k: int = 20,
@@ -367,7 +366,7 @@ class EmbeddingStore:
 
         try:
             response = self.s3vectors_client.query_vectors(**query_params)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error("Error querying S3 Vectors: %s", e)
             return pd.DataFrame()
 

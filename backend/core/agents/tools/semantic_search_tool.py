@@ -9,7 +9,7 @@ from pydantic_ai.providers.bedrock import BedrockProvider
 from backend.core.deps.agent_deps import AnalystAgentDeps
 from backend.core.models.rewrite_query import RewrittenQueries
 from backend.core.prompts.query_rewrite_prompt import QUERY_REWRITE_SYSTEM_PROMPT
-from backend.core.utils.agent_utils import AgentUtils
+from backend.core.utils.agent_utils import generate_random_id
 from backend.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -29,7 +29,7 @@ def format_results_with_ids(df: pd.DataFrame) -> tuple[pd.DataFrame, str]:
         return df, ""
 
     df = df.copy()
-    df["id"] = [AgentUtils.generate_random_id(5) for _ in range(len(df))]
+    df["id"] = [generate_random_id(5) for _ in range(len(df))]
 
     lines = ["id | Event | Question | Response\n"]
     for _, row in df.iterrows():

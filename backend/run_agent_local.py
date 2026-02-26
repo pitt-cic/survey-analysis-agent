@@ -5,6 +5,7 @@ from backend.core.agents.survey_agent import init_agent, run_query_with_citation
 
 
 def main():
+    """Run interactive CLI loop for querying the survey agent."""
     print("Initializing survey agent...")
     agent, embedding_store = init_agent()
     print("Agent ready.\n")

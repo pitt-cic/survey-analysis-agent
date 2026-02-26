@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 URL_EXPIRY_SECONDS = 86400
 
 
-class S3OutputService:
+class S3OutputService:  # pylint: disable=too-few-public-methods
     """Service for uploading CSV output files to S3."""
 
     def __init__(self, bucket_name: str | None = None):
