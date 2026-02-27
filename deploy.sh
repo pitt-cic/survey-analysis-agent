@@ -56,14 +56,6 @@ check_prerequisites() {
     fi
     echo "✅ AWS CLI configured"
 
-    # Check if CDK is installed
-    if ! command -v cdk &> /dev/null; then
-        echo "❌ AWS CDK not found. Please install it:"
-        echo "   npm install -g aws-cdk"
-        exit 1
-    fi
-    echo "✅ AWS CDK installed"
-
     echo ""
 }
 
@@ -339,7 +331,7 @@ invite_user() {
     if aws cognito-idp admin-create-user \
         --user-pool-id "$user_pool_id" \
         --username "$user_email" \
-        --user-attributes Name=email,Value="$user_email" \
+        --user-attributes Name=email,Value="$user_email" Name=email_verified,Value=true \
         --desired-delivery-mediums EMAIL > /dev/null 2>&1; then
 
         echo ""

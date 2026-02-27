@@ -234,7 +234,7 @@ The terminal will display the local URL where the development server is running.
    aws cognito-idp admin-create-user \
      --user-pool-id <USER_POOL_ID> \
      --username "user@example.com" \
-     --user-attributes Name=email,Value=user@example.com \
+     --user-attributes Name=email,Value=user@example.com Name=email_verified,Value=true \
      --desired-delivery-mediums EMAIL
    ```
    Replace `<USER_POOL_ID>` with the value from your CDK deployment outputs.
