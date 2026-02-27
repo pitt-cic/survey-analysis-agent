@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface Particle {
   id: number;
@@ -13,20 +13,19 @@ interface FloatingParticlesProps {
   count?: number;
 }
 
-export function FloatingParticles({ count = 20 }: FloatingParticlesProps) {
-  const [particles, setParticles] = useState<Particle[]>([]);
+function generateParticles(count: number): Particle[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    size: 2 + Math.random() * 3,
+    duration: 15 + Math.random() * 20,
+    delay: Math.random() * 15,
+    opacity: 0.2 + Math.random() * 0.4,
+  }));
+}
 
-  useEffect(() => {
-    const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      size: 2 + Math.random() * 3,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 15,
-      opacity: 0.2 + Math.random() * 0.4,
-    }));
-    setParticles(newParticles);
-  }, [count]);
+export function FloatingParticles({ count = 20 }: FloatingParticlesProps) {
+  const [particles] = useState<Particle[]>(() => generateParticles(count));
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
